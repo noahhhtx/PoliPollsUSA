@@ -125,3 +125,6 @@ def query():
     con.close()
     return output_html
     #return render_template("home.html")
+
+if __name__ == "__main__":
+    app.run(debug=True)

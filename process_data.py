@@ -4,6 +4,13 @@ import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 import sqlite3
+import pymysql
+import mysql.connector
+
+endpoint = 'pollingresults.crqso0moc75j.us-east-2.rds.amazonaws.com'
+user = 'noahhhtx'
+password = 'MrGame&Watch9!'
+database = 'PollingResults'
 
 def count_nones(x):
     i = 0
@@ -66,7 +73,12 @@ data = sh.get_all_values()
 cols = data[0]
 data = data[1:]
 
-con = sqlite3.connect("PollingResults.db")
+con = mysql.connector.connect(
+    user=user,
+    password=password,
+    host=endpoint,
+    database=database
+)
 
 df = pd.DataFrame(data)
 df.columns = cols
@@ -156,8 +168,8 @@ for question in range(3, len(df.columns)):
                 if demo_string is not None and demo_string == "Overall":
                     cursor = con.cursor()
                     cursor.execute("""INSERT INTO survey_results (date, question, yes, yes_moe, no, no_moe, respondents, note) 
-                    VALUES(?,?,?,?,?,?,?,?)
-                    ON CONFLICT(date, question) DO UPDATE SET date=?, question=?, yes=?, yes_moe=?, no=?, no_moe=?, respondents=?, note=?;""", (earliest_response_int, df.columns[question], results[0],
+                    VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
+                    ON DUPLICATE KEY UPDATE date=%s, question=%s, yes=%s, yes_moe=%s, no=%s, no_moe=%s, respondents=%s, note=%s;""", (earliest_response_int, df.columns[question], results[0],
                                                   results[1], results[2], results[3], n_respondents, note, earliest_response_int, df.columns[question], results[0], results[1], results[2], results[3], n_respondents, note))
                     con.commit()
 

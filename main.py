@@ -2,8 +2,15 @@
 
 from flask import Flask, request, render_template
 import sqlite3
+import pymysql
+import mysql.connector
 
 app = Flask(__name__)
+
+endpoint = 'pollingresults.crqso0moc75j.us-east-2.rds.amazonaws.com'
+user = 'noahhhtx'
+password = 'MrGame&Watch9!'
+database = 'PollingResults'
 
 @app.route("/")
 def home():
@@ -33,7 +40,12 @@ def query():
             query_string = " WHERE " + query_string
     if len(query_string) == 0:
         query_string = " LIMIT 10" # implies nothing was inserted.
-    con = sqlite3.connect("PollingResults.db")
+    con = mysql.connector.connect(
+        user=user,
+        password=password,
+        host=endpoint,
+        database=database
+    )
     c = con.cursor()
     output_html = '''
         <style>
@@ -89,7 +101,8 @@ def query():
     statement = ("SELECT date, question, yes, yes_moe, no, no_moe, respondents, note FROM survey_results"
                  + query_string + ";")
     print(statement)
-    result = c.execute(statement).fetchall()
+    c.execute(statement)
+    result = c.fetchall()
     if len(result) == 0:
         output_html+= "<p style=\"text-align:center\">Sorry, no results could be found. Please try another query.</p>"
     else:

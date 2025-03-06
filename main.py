@@ -4,13 +4,9 @@ from flask import Flask, request, render_template
 import sqlite3
 import pymysql
 import mysql.connector
+import assist_functions
 
 app = Flask(__name__)
-
-endpoint = 'pollingresults.crqso0moc75j.us-east-2.rds.amazonaws.com'
-user = 'noahhhtx'
-password = 'MrGame&Watch9!'
-database = 'PollingResults'
 
 @app.route("/")
 def home():
@@ -39,14 +35,7 @@ def query():
             query_string = " AND ".join(query_strings)
             query_string = " WHERE " + query_string
     if len(query_string) == 0:
-        query_string = " LIMIT 10" # implies nothing was inserted.
-    con = mysql.connector.connect(
-        user=user,
-        password=password,
-        host=endpoint,
-        database=database
-    )
-    c = con.cursor()
+        query_string = " LIMIT 10" # implies nothing was inserted
     output_html = '''
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
@@ -100,44 +89,29 @@ def query():
     '''
     statement = ("SELECT date, question, yes, yes_moe, no, no_moe, respondents, note FROM survey_results"
                  + query_string + ";")
-    print(statement)
-    c.execute(statement)
-    result = c.fetchall()
+    result = assist_functions.query_db(statement)
     if len(result) == 0:
         output_html+= "<p style=\"text-align:center\">Sorry, no results could be found. Please try another query.</p>"
     else:
-        output_html+='''<table class = "results" id = "results_table" style="text-align: left;">
-            <tr class = "results">
-                <th class = "results">Date</th>
-                <th class = "results">Question</th>
-                <th class = "results">Yes</th>
-                <th class = "results">Yes MOE</th>
-                <th class = "results">No</th>
-                <th class = "results">No MOE</th>
-                <th class = "results">n</th>
-                <th class = "results">Note</th>
-            </tr>'''
+        rows = []
         for row in result:
             # adjust date
             row = list(row)
             temp = str(row[0])
             temp = temp[4:6] + "/" + temp[6:] + "/" + temp[0:4]
             row[0] = temp
-            temp_str = "<tr class = \"results\">"
-            for col in row:
-                temp_str += "<td class = \"results\">" + str(col) + "</td>"
-            temp_str += "</tr>"
-            output_html+=temp_str
-        output_html+="</table>"
+            rows.append(row)
+        output_html += assist_functions.generate_table(["Date", "Question", "Yes", "Yes MOE", "No", "No MOE", "n", "Note"],
+                                                       row, "results", "results_table", "text-align: left;")
     output_html+='''
     <br>
     <form action="/">
         <input type="submit" value="Home">
     </form>
     </body>'''
-    con.close()
     return output_html
     #return render_template("home.html")
+
 
 if __name__ == "__main__":
     app.run(debug=True)

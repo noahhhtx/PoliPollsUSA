@@ -20,33 +20,36 @@ def query_db(statement):
     con.close()
     return result
 
-def generate_table(header, content, class_=None, id=None, style=None):
+def generate_table(header, content, class_=None, id=None, style=None, style_cell=None):
     class_str = ""
     id_str = ""
     style_str = ""
+    style_cell_str = ""
     if class_ is not None:
         class_str = " class = \"%s\"" % class_
     if id is not None:
         id_str = " id = \"%s\"" % id
     if style is not None:
         style_str = " style = \"%s\"" % style
-    s = "<table" + class_str + id_str + style_str + ">"
+    if style_cell is not None:
+        style_cell_str = " style = \"%s\"" % style_cell
+    s = "<table" + class_str + id_str + style_str + ">\n"
 
     # create row for header
-    s += "<tr>"
+    s += "<tr>\n"
     for h in header:
-        s += "<th>" + h + "</th>"
-    s += "</tr>"
+        s += "<th" + style_cell_str + ">" + str(h) + "</th>\n"
+    s += "</tr>\n"
 
     # create entry for each row of content
     for row in content:
-        s += "<tr"
+        s += "<tr>\n"
 
         for col in row:
-            s += "<td>" + col + "</td>"
+            s += "<td" + style_cell_str + ">" + str(col) + "</td>\n"
 
-        s += "</tr>"
+        s += "</tr>\n"
 
-    s += "</table>"
+    s += "</table>\n"
 
     return s

@@ -66,7 +66,7 @@ def query():
         </style>
         <body>
         <h1>Previous Survey Results</h1>
-        <p style="text-align:center">Use this form to query previous survey results. Test.</p>
+        <p style="text-align:center">Use this form to query previous survey results.</p>
         <form action="/query" method="post">
             <table id="query_table">
             <tr>
@@ -102,7 +102,7 @@ def query():
             row[0] = temp
             rows.append(row)
         output_html += assist_functions.generate_table(["Date", "Question", "Yes", "Yes MOE", "No", "No MOE", "n", "Note"],
-                                                       row, "results", "results_table", "text-align: left;")
+                                                       rows, "results", "results_table", "text-align: left;", "border:1px solid black;")
     output_html+='''
     <br>
     <form action="/">

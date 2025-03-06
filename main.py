@@ -66,7 +66,7 @@ def query():
         </style>
         <body>
         <h1>Previous Survey Results</h1>
-        <p style="text-align:center">Use this form to query previous survey results. </p>
+        <p style="text-align:center">Use this form to query previous survey results. Test.</p>
         <form action="/query" method="post">
             <table id="query_table">
             <tr>

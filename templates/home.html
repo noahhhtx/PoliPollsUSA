@@ -7,14 +7,7 @@
 </head>
 <body>
 
-<p align="center"><img id="logo" src="{{ url_for('static', filename='polipollsusa_logo.png') }}"></p>
-<p align="center"><i>Political Polling by Texans, for Texans.</i></p>
-
-<hr class="rounded">
-
-<p style="text-align:center;">Click <a href="/query">here</a> to view our previous survey results.</p>
-
-<hr class="rounded">
+{% include 'header.html' %}
 
 <p align="center"><iframe src='https://widgets.sociablekit.com/twitter-feed/iframe/25530426' frameborder='0' width='60%' height='500'></iframe></p>
 

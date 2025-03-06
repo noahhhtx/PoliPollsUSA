@@ -4,11 +4,7 @@
     font-family: "Roboto", sans-serif;
 }
 
-#logo {
-	width:10%; height:10%;
-}
-
 hr.rounded {
-  border-top: 8px solid #bbb;
-  border-radius: 5px;
-}
+      border-top: 5px solid #bbb;
+      border-radius: 5px;
+    }

@@ -60,11 +60,13 @@ def query():
         form { text-align:center; }
         h1 { text-align:center; }
         hr.rounded {
-        border-top: 8px solid #bbb;
+        border-top: 5px solid #bbb;
         border-radius: 5px;
         }
         </style>
-        <body>
+        <body>'''
+    output_html += render_template("header.html")
+    output_html += '''
         <h1>Previous Survey Results</h1>
         <p style="text-align:center">Use this form to query previous survey results.</p>
         <form action="/query" method="post">
@@ -104,10 +106,6 @@ def query():
         output_html += assist_functions.generate_table(["Date", "Question", "Yes", "Yes MOE", "No", "No MOE", "n", "Note"],
                                                        rows, "results", "results_table", "text-align: left;", "border:1px solid black;")
     output_html+='''
-    <br>
-    <form action="/">
-        <input type="submit" value="Home">
-    </form>
     </body>'''
     return output_html
     #return render_template("home.html")

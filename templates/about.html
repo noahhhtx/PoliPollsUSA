@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>About Us</title>
+     <link rel="stylesheet" type= "text/css" href={{ url_for('static', filename='home.css') }}>
+</head>
+<body>
+
+{% include 'header.html' %}
+
+<div style="width:50%; margin:0 auto;">
+    <h1 style="text-align:center;">About Us</h1>
+    <p>Our mission is to give Texans insight into how we perceive the political issues of the current day. This extends
+        beyond merely national issues; we want to understand how Texans feel about the issues that most directly affect
+        our great state and its many locales.
+    <hr>
+    <h1 style="text-align:center;">Meet Our Team!</h1>
+    <div style="height:150px;">
+        <img src="{{ url_for('static', filename='brooks.jpg') }}" style=" aspect-ratio:1/1; height:100%; float:left; padding-right:20px;">
+        <h2 style="display:inline;">Brooks Harrison, Founder</h2>
+        <ul style="list-style-type: none;">
+            <li>BS, Exercise Science: University of Houston (expected Fall 2025)</li>
+            <li>LinkedIn: <a href="https://www.linkedin.com/in/brooks-harrison-96b55528a">brooks-harrison-96b55528a</a></li>
+        </ul>
+    </div>
+    <br>
+    <div style="height:150px;">
+        <img src="{{ url_for('static', filename='noah.jpg') }}" style=" aspect-ratio:1/1; height:100%; float:left; padding-right:20px;">
+        <h2 style="display:inline;">Noah Harrison, Analyst</h2>
+        <ul style="list-style-type: none;">
+            <li>BS, Computer Science: University of Houston (Fall 2024)</li>
+            <li>LinkedIn: <a href="https://www.linkedin.com/in/noahh-uh/">noahh-uh</a></li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

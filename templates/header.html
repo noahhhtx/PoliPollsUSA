@@ -1,9 +1,13 @@
+<head>
+    <link rel="stylesheet" type= "text/css" href={{ url_for('static', filename='header.css') }}>
+</head>
+
 <p align="center"><a href="/"><img src="{{ url_for('static', filename='polipollsusa_logo.png') }}" style=" width:180px; height:106px;"></a></p>
 <p align="center"><i>Political Polling by Texans, for Texans.</i></p>
 
 <hr>
 
-<table style="width:30%;margin: 0px auto;text-align:center;">
+<table id="header" style="width:30%; margin: 0px auto;text-align:center;">
     <tr>
         <td><a href="/">Home</a></td>
         <td><a href="/surveyresults">Survey Results</a></td>

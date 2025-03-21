@@ -30,7 +30,7 @@ def survey_dates():
         date_obj = datetime.strptime(str(date), "%Y%m%d")
         date_str = date_obj.strftime("%B %d, %Y")
         date_str_url = date_obj.strftime("%Y-%m-%d")
-        content = '<a class="intable" href="/query?keyword=&startdate=' + date_str_url + '&enddate=' + date_str_url + '"/>' + date_str
+        content = '<a class="intable" style="font-size: 30px; font-weight: bold;" href="/query?keyword=&startdate=' + date_str_url + '&enddate=' + date_str_url + '"/>' + date_str
         print(content)
         rows.append([content])
 
@@ -67,6 +67,7 @@ def survey_dates():
                 color: inherit;
                 text-decoration: inherit;
                 }
+                .dates tr:hover {background-color: lightgray;}
                 </style>
                 <body>'''
     output_html += render_template("header.html")
@@ -76,8 +77,8 @@ def survey_dates():
         '''
     output_html += assist_functions.generate_table(content=rows,
                                                    style="width: 50%; border-spacing: 30px;",
-                                                   style_cell="border:1px solid black;text-align:center;width:auto;",
-                                                   cols=3)
+                                                   style_cell="border:2px solid black;text-align:center;width:auto;",
+                                                   class_="dates")
     output_html += "</body>"
     return output_html
 
@@ -140,6 +141,7 @@ def query():
         border-top: 5px solid #bbb;
         border-radius: 5px;
         }
+        .results tr:hover {background-color: lightgray;}
         </style>
         <body>'''
     output_html += render_template("header.html")

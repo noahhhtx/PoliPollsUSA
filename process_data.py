@@ -12,6 +12,29 @@ user = 'noahhhtx'
 password = 'MrGame&Watch9!'
 database = 'PollingResults'
 
+def process_zips(c, zip_codes):
+    for i in zip_codes:
+        zip = str(i)
+        if len(zip) < 5:
+            continue
+        elif len(zip) > 5:
+            zip = zip[0:5]
+        if not zip.isdigit():
+            continue
+        cur = c.cursor()
+        cur.execute("""INSERT INTO zip_codes (zip, count)
+        VALUES (%s, 1)
+        ON DUPLICATE KEY UPDATE count=count+1;""", (int(zip)))
+        con.commit()
+
+def change_agree(s):
+    if "Agree" in s:
+        return "Yes"
+    elif "Disagree" in s:
+        return "No"
+    else:
+        return s
+
 def count_nones(x):
     i = 0
     k = None
@@ -104,6 +127,17 @@ earliest_response_int = int(earliest_response.strftime("%Y%m%d"))
 df = df.replace("", np.nan)
 df = df.dropna()
 
+starting_point = 3
+
+if "ZIP Code" in df.columns[starting_point]:
+    zips = df[df.columns[starting_point]].values.tolist()
+    process_zips(con, zips)
+    starting_point = 4
+
+# Preprocessing Part 3: Setting "Agree" and "Disagree" responses to "Yes" and "No"
+for i in range(starting_point, len(df.columns)):
+    df[df.columns[i]] = df[df.columns[i]].apply(change_agree)
+
 print(df.info())
 print(len(df), "rows after preprocessing")
 
@@ -128,11 +162,12 @@ col_names=None
 
 specific_data_for_convenience = {}
 
-for question in range(3, len(df.columns)):
+for question in range(starting_point, len(df.columns)):
 
     specific_data_for_convenience[df.columns[question]] = {"Gender": {"Yes":[], "No":[], "Names":[]},
                                                            "Party": {"Yes":[], "No":[], "Names":[]},
                                                            "Race": {"Yes":[], "No":[], "Names":[]}}
+
     answers = ["Yes", "No"]
     col_names = ["Question"]
     current_question_data = [df.columns[question]]

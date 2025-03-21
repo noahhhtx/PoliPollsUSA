@@ -5,6 +5,7 @@ import sqlite3
 import pymysql
 import mysql.connector
 import assist_functions
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -15,6 +16,70 @@ def home():
 @app.route("/about")
 def about():
     return render_template("about.html")
+
+@app.route("/surveyresults")
+def survey_dates():
+    statement = "SELECT DISTINCT date FROM survey_results ORDER BY date DESC LIMIT 10;"
+    result = assist_functions.query_db(statement)
+    print(result)
+    result = list(result)
+    rows = []
+    print(result)
+    for row in result:
+        date = row[0]
+        date_obj = datetime.strptime(str(date), "%Y%m%d")
+        date_str = date_obj.strftime("%B %d, %Y")
+        date_str_url = date_obj.strftime("%Y-%m-%d")
+        content = '<a class="intable" href="/query?keyword=&startdate=' + date_str_url + '&enddate=' + date_str_url + '"/>' + date_str
+        print(content)
+        rows.append([content])
+
+    output_html = '''
+                <style>
+                @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+                * {
+                    font-family: "Roboto", sans-serif;
+                }
+                table { margin-left: auto;
+                    margin-right: auto; }
+                .left {float:left;}
+                .right {float:right;}
+                .center {text-align: center;}
+                #keyword { float:right}
+                #query_table { 
+                    width:350px;
+                 }
+                #results_table {
+                    width:800px;
+                }
+                .results {
+                    border:1px solid black;
+                }
+                form { text-align:center; }
+                h1 { text-align:center; }
+                hr.rounded {
+                border-top: 5px solid #bbb;
+                border-radius: 5px;
+                }
+                a.intable {
+                display: block;
+                padding: 50px;
+                color: inherit;
+                text-decoration: inherit;
+                }
+                </style>
+                <body>'''
+    output_html += render_template("header.html")
+    output_html += '''<h1 style="text-align:center">Most Recent Survey Results</h1>
+        <p style="text-align:center">Click on a date below to see the results of the survey administered on that date.</p>
+        <p style="text-align:center">Visit the <a href="/query">Query Page</a> for more specific results.</p>
+        '''
+    output_html += assist_functions.generate_table(content=rows,
+                                                   style="width: 50%; border-spacing: 30px;",
+                                                   style_cell="border:1px solid black;text-align:center;width:auto;",
+                                                   cols=3)
+    output_html += "</body>"
+    return output_html
 
 @app.route("/query", methods =["GET", "POST"])
 def query():
@@ -81,7 +146,7 @@ def query():
     output_html += '''
         <h1 style="text-align:center">Previous Survey Results</h1>
         <p style="text-align:center">Use this form to query previous survey results.</p>
-        <form action="/query" method="post">
+        <form action="/query" method="get">
             <table id="query_table">
             <tr>
                 <td class="left"> Keyword: </td> 

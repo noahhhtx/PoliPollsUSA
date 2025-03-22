@@ -17,8 +17,9 @@ def query_db(statement):
     print(statement)
     c.execute(statement)
     result = c.fetchall()
+    desc = c.description
     con.close()
-    return result
+    return result, desc
 
 def generate_table(header=[], content=[], class_=None, id=None, style=None, style_cell=None, style_header=None, cols=None):
     count_cols = False

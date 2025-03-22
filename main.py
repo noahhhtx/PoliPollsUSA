@@ -1,11 +1,13 @@
 # written by Noah Harrison
 
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, Response
 import sqlite3
 import pymysql
 import mysql.connector
 import assist_functions
 from datetime import datetime
+import csv
+import io
 
 app = Flask(__name__)
 
@@ -20,7 +22,7 @@ def about():
 @app.route("/surveyresults")
 def survey_dates():
     statement = "SELECT DISTINCT date FROM survey_results ORDER BY date DESC LIMIT 10;"
-    result = assist_functions.query_db(statement)
+    result, desc = assist_functions.query_db(statement)
     print(result)
     result = list(result)
     rows = []
@@ -148,7 +150,7 @@ def query():
     output_html += '''
         <h1 style="text-align:center">Previous Survey Results</h1>
         <p style="text-align:center">Use this form to query previous survey results.</p>
-        <form action="/query" method="get">
+        <form action="/query" method="post">
             <table id="query_table">
             <tr>
                 <td class="left"> Keyword: </td> 
@@ -164,13 +166,13 @@ def query():
             </tr>
             <tr>
                 <td class="center"> <input type="submit" value="Submit"> </td>
-            </td>
+            </tr>
             </table>
         </form>
     '''
     statement = ("SELECT date, question, yes, yes_moe, no, no_moe, respondents, note FROM survey_results"
                  + query_string + ";")
-    result = assist_functions.query_db(statement)
+    result, desc = assist_functions.query_db(statement)
     if len(result) == 0:
         output_html+= "<p style=\"text-align:center\">Sorry, no results could be found. Please try another query.</p>"
     else:
@@ -184,11 +186,49 @@ def query():
             rows.append(row)
         output_html += assist_functions.generate_table(["Date", "Question", "Yes", "Yes MOE", "No", "No MOE", "n", "Note"],
                                                        rows, "results", "results_table", "text-align: left;", "border:1px solid black;")
-    output_html+='''
-    </body>'''
+        output_html+='''
+        <br>
+        <form action="/downloadresults" method="post">
+            <input type = "hidden" name = "query" value = "''' + statement + '''" />
+            <table> 
+                <tr>
+                    <td class="center"> <input type="submit" value="Download Results"> </td>
+                </tr>
+            </table>
+        </form>'''
+    output_html+='''</body>'''
     return output_html
     #return render_template("home.html")
 
+@app.route("/downloadresults", methods=["GET", "POST"])
+def download():
+    print("Begin of Download Page")
+    query = ""
+    if request.method == "POST":
+        query = request.form.get("query")
+    else:
+        query = request.args.get("query")
+    query = query.replace(" LIMIT 10", "")
+    print(query)
+    print("End of Download Page")
+
+    result, desc = assist_functions.query_db(query)
+
+    csv_file = "download.csv"
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    column_names = [i[0] for i in desc]
+    writer.writerow(column_names)
+
+    writer.writerows(result)
+
+    output.seek(0)
+
+    response = Response(output.getvalue(), mimetype="text/csv")
+    response.headers["Content-Disposition"] = "attachment; filename=survey_result.csv"
+
+    return response
 
 if __name__ == "__main__":
     app.run(debug=True)

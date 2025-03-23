@@ -27,13 +27,22 @@ def process_zips(c, zip_codes):
         ON DUPLICATE KEY UPDATE count=count+1;""", (int(zip)))
         con.commit()
 
-def change_agree(s):
-    if "Agree" in s:
-        return "Yes"
-    elif "Disagree" in s:
-        return "No"
+def process_weird_answers(s):
+    if s.isnumeric():
+        s = int(s)
+        if s > 5:
+            return "Yes"
+        elif s < 5:
+            return "No"
+        else:
+            return "Unsure"
     else:
-        return s
+        if "Agree" in s:
+            return "Yes"
+        elif "Disagree" in s:
+            return "No"
+        else:
+            return s
 
 def count_nones(x):
     i = 0
@@ -106,8 +115,6 @@ con = mysql.connector.connect(
 df = pd.DataFrame(data)
 df.columns = cols
 
-df = df.drop("On a scale of 1-10, with 1 being bad and 10 being good, how confident are you in the stability of the U.S. economy under Donald Trump?", axis=1)
-
 print(df)
 
 print(len(df), "rows before preprocessing")
@@ -136,7 +143,7 @@ if "ZIP Code" in df.columns[starting_point]:
 
 # Preprocessing Part 3: Setting "Agree" and "Disagree" responses to "Yes" and "No"
 for i in range(starting_point, len(df.columns)):
-    df[df.columns[i]] = df[df.columns[i]].apply(change_agree)
+    df[df.columns[i]] = df[df.columns[i]].apply(process_weird_answers)
 
 print(df.info())
 print(len(df), "rows after preprocessing")
@@ -164,14 +171,26 @@ specific_data_for_convenience = {}
 
 for question in range(starting_point, len(df.columns)):
 
-    specific_data_for_convenience[df.columns[question]] = {"Gender": {"Yes":[], "No":[], "Names":[]},
+    question_name = df.columns[question]
+
+    print(question_name)
+    print("Would you like to skip this question? (Y/N)")
+    decision = input().lower()
+    if decision.startswith("y"):
+        continue
+    print("Would you like to rename this question? (Y/N)")
+    decision = input().lower()
+    if decision.startswith("y"):
+        print("Type the new name for the question.")
+        question_name = input()
+
+    specific_data_for_convenience[question_name] = {"Gender": {"Yes":[], "No":[], "Names":[]},
                                                            "Party": {"Yes":[], "No":[], "Names":[]},
                                                            "Race": {"Yes":[], "No":[], "Names":[]}}
 
     answers = ["Yes", "No"]
     col_names = ["Question"]
-    current_question_data = [df.columns[question]]
-    print(df.columns[question])
+    current_question_data = [question_name]
 
     # Segment by demographics
     for gender in genders:
@@ -189,23 +208,23 @@ for question in range(starting_point, len(df.columns)):
                     col_names.extend([a,b])
                 if i == 2 and k is not None:
                     if k in genders:
-                        specific_data_for_convenience[df.columns[question]]["Gender"]["Yes"].append(results[0])
-                        specific_data_for_convenience[df.columns[question]]["Gender"]["No"].append(results[2])
-                        specific_data_for_convenience[df.columns[question]]["Gender"]["Names"].append(k)
+                        specific_data_for_convenience[question_name]["Gender"]["Yes"].append(results[0])
+                        specific_data_for_convenience[question_name]["Gender"]["No"].append(results[2])
+                        specific_data_for_convenience[question_name]["Gender"]["Names"].append(k)
                     elif k in parties:
-                        specific_data_for_convenience[df.columns[question]]["Party"]["Yes"].append(results[0])
-                        specific_data_for_convenience[df.columns[question]]["Party"]["No"].append(results[2])
-                        specific_data_for_convenience[df.columns[question]]["Party"]["Names"].append(k)
+                        specific_data_for_convenience[question_name]["Party"]["Yes"].append(results[0])
+                        specific_data_for_convenience[question_name]["Party"]["No"].append(results[2])
+                        specific_data_for_convenience[question_name]["Party"]["Names"].append(k)
                     else:
-                        specific_data_for_convenience[df.columns[question]]["Race"]["Yes"].append(results[0])
-                        specific_data_for_convenience[df.columns[question]]["Race"]["No"].append(results[2])
-                        specific_data_for_convenience[df.columns[question]]["Race"]["Names"].append(k)
+                        specific_data_for_convenience[question_name]["Race"]["Yes"].append(results[0])
+                        specific_data_for_convenience[question_name]["Race"]["No"].append(results[2])
+                        specific_data_for_convenience[question_name]["Race"]["Names"].append(k)
                 if demo_string is not None and demo_string == "Overall":
                     cursor = con.cursor()
                     cursor.execute("""INSERT INTO survey_results (date, question, yes, yes_moe, no, no_moe, respondents, note) 
                     VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
-                    ON DUPLICATE KEY UPDATE date=%s, question=%s, yes=%s, yes_moe=%s, no=%s, no_moe=%s, respondents=%s, note=%s;""", (earliest_response_int, df.columns[question], results[0],
-                                                  results[1], results[2], results[3], n_respondents, note, earliest_response_int, df.columns[question], results[0], results[1], results[2], results[3], n_respondents, note))
+                    ON DUPLICATE KEY UPDATE date=%s, question=%s, yes=%s, yes_moe=%s, no=%s, no_moe=%s, respondents=%s, note=%s;""", (earliest_response_int, question_name, results[0],
+                                                  results[1], results[2], results[3], n_respondents, note, earliest_response_int, question_name, results[0], results[1], results[2], results[3], n_respondents, note))
                     con.commit()
 
 

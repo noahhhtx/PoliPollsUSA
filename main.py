@@ -78,7 +78,7 @@ def survey_dates():
         <p style="text-align:center">Visit the <a href="/query">Query Page</a> for more specific results.</p>
         '''
     output_html += assist_functions.generate_table(content=rows,
-                                                   style="width: 50%; border-spacing: 30px;",
+                                                   style="width: 50%; border-spacing: 15px;",
                                                    style_cell="border:2px solid black;text-align:center;width:auto;",
                                                    class_="dates")
     output_html += "</body>"

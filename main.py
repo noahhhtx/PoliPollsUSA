@@ -9,6 +9,13 @@ from datetime import datetime
 import csv
 import io
 
+db_info = {}
+with open("db_info", "r") as db_file:
+    for line in db_file.readlines():
+        line_s = line.strip()
+        parts = line_s.split('=')
+        db_info[parts[0]] = parts[1]
+
 app = Flask(__name__)
 
 @app.route("/")
@@ -22,7 +29,7 @@ def about():
 @app.route("/surveyresults")
 def survey_dates():
     statement = "SELECT DISTINCT date FROM survey_results ORDER BY date DESC LIMIT 10;"
-    result, desc = assist_functions.query_db(statement)
+    result, desc = assist_functions.query_db(statement, db_info)
     print(result)
     result = list(result)
     rows = []
@@ -30,7 +37,7 @@ def survey_dates():
     for row in result:
         date = row[0]
         date_obj = datetime.strptime(str(date), "%Y%m%d")
-        date_str = date_obj.strftime("%B %d, %Y")
+        date_str = date_obj.strftime("%B %#d, %Y")
         date_str_url = date_obj.strftime("%Y-%m-%d")
         content = '<a class="intable" style="font-size: 30px; font-weight: bold;" href="/query?keyword=&startdate=' + date_str_url + '&enddate=' + date_str_url + '"/>' + date_str
         print(content)
@@ -147,34 +154,44 @@ def query():
         </style>
         <body>'''
     output_html += render_template("header.html")
-    output_html += '''
-        <h1 style="text-align:center">Previous Survey Results</h1>
-        <p style="text-align:center">Use this form to query previous survey results.</p>
-        <form action="/query" method="post">
-            <table id="query_table">
-            <tr>
-                <td class="left"> Keyword: </td> 
-                <td class="right"> <input type="text" id="keyword" name="keyword"/> </td>
-            </tr>
-            <tr>
-                <td class="left"> <label for="startdate">Earliest Poll Begin Date:</label> </td>
-                <td class="right"> <input type="date" id="startdate" name="startdate"/> </td>
-            </tr>
-            <tr>
-                <td class="left"> <label for="enddate">Latest Poll Begin Date:</label> </td>
-                <td class="right"> <input type="date" id="enddate" name="enddate"/> </td>
-            </tr>
-            <tr>
-                <td class="center"> <input type="submit" value="Submit"> </td>
-            </tr>
-            </table>
-        </form>
-    '''
+    print(startdate)
+    print(enddate)
+    if ( (startdate is None) or (enddate is None)  ) or ( (len(startdate) == 0) or (len(enddate) == 0) ) or startdate != enddate:
+        output_html += '''
+            <h1 style="text-align:center">Previous Survey Results</h1>
+            <p style="text-align:center">Use this form to query previous survey results.</p>
+            <form action="/query" method="post">
+                <table id="query_table">
+                <tr>
+                    <td class="left"> Keyword: </td> 
+                    <td class="right"> <input type="text" id="keyword" name="keyword"/> </td>
+                </tr>
+                <tr>
+                    <td class="left"> <label for="startdate">Earliest Poll Begin Date:</label> </td>
+                    <td class="right"> <input type="date" id="startdate" name="startdate"/> </td>
+                </tr>
+                <tr>
+                    <td class="left"> <label for="enddate">Latest Poll Begin Date:</label> </td>
+                    <td class="right"> <input type="date" id="enddate" name="enddate"/> </td>
+                </tr>
+                <tr>
+                    <td class="center"> <input type="submit" value="Submit"> </td>
+                </tr>
+                </table>
+            </form>
+        '''
+    else:
+        date = datetime.strftime(datetime.strptime(startdate, "%Y%m%d"), "%B %#d, %Y")
+        output_html += f'''
+        <h1 style="text-align:center">Survey Results for {date}</h1>
+        <p style="text-align:center">Visit the <a href="/surveyresults">Survey Results Page</a> to check the results of other surveys.</p>
+        <p style="text-align:center">Visit the <a href="/query">Query Page</a> to query other date ranges.</p>
+        '''
     statement = ("SELECT date, question, yes, yes_moe, no, no_moe, respondents, note FROM survey_results"
                  + query_string + ";")
-    result, desc = assist_functions.query_db(statement)
+    result, desc = assist_functions.query_db(statement, db_info)
     if len(result) == 0:
-        output_html+= "<p style=\"text-align:center\">Sorry, no results could be found. Please try another query.</p>"
+        output_html+= "<p style=\"text-align:center\"><b>Sorry, no results could be found. Please try another query.</b></p>"
     else:
         rows = []
         for row in result:
@@ -212,7 +229,7 @@ def download():
     print(query)
     print("End of Download Page")
 
-    result, desc = assist_functions.query_db(query)
+    result, desc = assist_functions.query_db(query, db_info)
 
     csv_file = "download.csv"
     output = io.StringIO()
@@ -229,6 +246,63 @@ def download():
     response.headers["Content-Disposition"] = "attachment; filename=survey_result.csv"
 
     return response
+
+@app.route("/trends", methods=["GET", "POST"])
+def trend():
+    # needs to be finished.
+    query_string = ""
+    if request.method == "POST" or request.method == "GET": # assumes there was in fact an input
+        keywords = ""
+        topic = ""
+        if request.method == "POST":
+            print("POST")
+            topic = request.form.get("topic")
+            if topic is None:
+                topic = "none_selected"
+        else:
+            print("GET")
+            topic = request.args.get('topic')
+            if topic is None:
+                topic = "none_selected"
+        print(topic)
+        topic = topic.strip()
+        match topic:
+            case "Trump Approval":
+                keywords = "(question LIKE %TRUMP%) AND (question LIKE %APPROV%)"
+            case "Economy Approval":
+                keywords = "(question LIKE %ECONOM%) AND ( (question LIKE %APPROV%) OR (question LIKE %OPTIMIS%) )"
+    output_html = '''
+            <style>
+            @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+            * {
+                font-family: "Roboto", sans-serif;
+            }
+            table { margin-left: auto;
+                margin-right: auto; }
+            .left {float:left;}
+            .right {float:right;}
+            .center {text-align: center;}
+            #keyword { float:right}
+            #query_table { 
+                width:350px;
+             }
+            #results_table {
+                width:800px;
+            }
+            .results {
+                border:1px solid black;
+            }
+            form { text-align:center; }
+            h1 { text-align:center; }
+            hr.rounded {
+            border-top: 5px solid #bbb;
+            border-radius: 5px;
+            }
+            .results tr:hover {background-color: lightgray;}
+            </style>
+            <body>'''
+    output_html += render_template("header.html")
+    return output_html
 
 if __name__ == "__main__":
     app.run(debug=True)

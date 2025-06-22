@@ -1,17 +1,12 @@
 import pymysql
 import mysql.connector
 
-endpoint = 'pollingresults.crqso0moc75j.us-east-2.rds.amazonaws.com'
-user = 'noahhhtx'
-password = 'MrGame&Watch9!'
-database = 'PollingResults'
-
-def query_db(statement):
+def query_db(statement, db_info):
     con = mysql.connector.connect(
-        user=user,
-        password=password,
-        host=endpoint,
-        database=database
+        user=db_info["user"],
+        password=db_info["password"],
+        host=db_info["endpoint"],
+        database=db_info["database"]
     )
     c = con.cursor()
     print(statement)

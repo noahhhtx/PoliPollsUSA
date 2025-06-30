@@ -8,13 +8,13 @@ import assist_functions
 from datetime import datetime
 import csv
 import io
+import os
 
 db_info = {}
-with open("db_info", "r") as db_file:
-    for line in db_file.readlines():
-        line_s = line.strip()
-        parts = line_s.split('=')
-        db_info[parts[0]] = parts[1]
+db_info["endpoint"] = os.environ.get("endpoint")
+db_info["user"] = os.environ.get("user")
+db_info["password"] = os.environ.get("password")
+db_info["database"] = os.environ.get("database")
 
 app = Flask(__name__)
 
